@@ -35,6 +35,8 @@ def calculated_accrual_payment():
     for pay in payments:
         current_accruals = filter(lambda x: x['month'] == pay['month'], accruals)
         for c_accrual in current_accruals:
+            # Проверяется условие, что полученные элементы по полю month имеют один год с проверяемым плаежом
+            # и были созданы до появления платежа
             if (datetime.date.fromisoformat(c_accrual['date']).year == datetime.date.fromisoformat(pay['date']).year) and\
                     c_accrual['date'] <= pay['date']:
                 result.append({'id_accrual': c_accrual['id'], 'id_payments': pay['id']})
@@ -42,6 +44,8 @@ def calculated_accrual_payment():
                     if accruals[x]['id'] == c_accrual['id']:
                         del accruals[x]
                         break
+            # Если платеж не смог погасить не один долг в своем месяце, ищется самый старый долг,
+            # который он может погасить
             else:
                 last_accrual = min(accruals, key=lambda d: d.get('date'))
                 if last_accrual['date'] < pay['date']:
@@ -53,6 +57,7 @@ def calculated_accrual_payment():
                 else:
                     result.append({'id_accrual': 'null', 'id_payments': pay['id']})
             break
+        # Данное условие срабатывает, когда остаётся последний элемент в списке accruals
         if len(accruals) == 1:
             last_accrual = accruals[0]
             if last_accrual['date'] < pay['date']:

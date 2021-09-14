@@ -11,7 +11,7 @@ result = db.result
 # Функция создающая коллекция Долг и Платежи, данные полей date и month заполняются рандомно
 
 def create_test_db():
-    for i in range(10):
+    for i in range(5):
         day = random.randrange(1, 25)
         month = random.randrange(1, 12)
         year = random.randrange(2020, 2021)
@@ -44,34 +44,20 @@ def calculated_accrual_payment():
                     if accruals[x]['id'] == c_accrual['id']:
                         del accruals[x]
                         break
-            # Если платеж не смог погасить не один долг в своем месяце, ищется самый старый долг,
-            # который он может погасить
-            else:
-                last_accrual = min(accruals, key=lambda d: d.get('date'))
-                if last_accrual['date'] < pay['date']:
-                    result.append({'id_accrual': last_accrual['id'], 'id_payments': pay['id']})
-                    for x in range(len(accruals)):
-                        if accruals[x]['id'] == last_accrual['id']:
-                            del accruals[x]
-                            break
-                else:
-                    result.append({'id_accrual': 'null', 'id_payments': pay['id']})
-            break
-        # Данное условие срабатывает, когда остаётся последний элемент в списке accruals
-        if len(accruals) == 1:
-            last_accrual = accruals[0]
-            if last_accrual['date'] < pay['date']:
-                result.append({'id_accrual': last_accrual['id'], 'id_payments': pay['id']})
-                for x in range(len(accruals)):
-                    if accruals[x]['id'] == last_accrual['id']:
-                        del accruals[x]
-                        break
-            else:
-                result.append({'id_accrual': 'null', 'id_payments': pay['id']})
-        result.append({'id_accrual': 'null', 'id_payments': pay['id']})
+                break
+        # Если платеж не смог погасить не один долг в своем месяце, ищется самый старый долг,
+        # который он может погасить
+        last_accrual = min(accruals, key=lambda d: d.get('date'))
+        if last_accrual['date'] < pay['date']:
+            result.append({'id_accrual': last_accrual['id'], 'id_payments': pay['id']})
+            for x in range(len(accruals)):
+                if accruals[x]['id'] == last_accrual['id']:
+                    del accruals[x]
+                    break
+        else:
+            result.append({'id_accrual': 'null', 'id_payments': pay['id']})
     return db.result.insert_many(result)
 
 
-create_test_db()
 calculated_accrual_payment()
 
